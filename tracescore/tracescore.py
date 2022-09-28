@@ -1,8 +1,7 @@
 import sqlite3
 import os
 
-from data_processing.database import read_sqlite, read_cha, read_files
-import datetime
+from data_processing.database import read_sqlite
 from sklearn.metrics.pairwise import cosine_similarity
 
 from BF import BF
@@ -16,31 +15,16 @@ else:
     big_bug_req_filter = False
     whole_history = True
 
-def calculate(issues, filePath, history):
-# def calculate(issues, filePath, train_size):
+def calculate(issues, filePath):
     bugReport = [x for x in issues if x.issue_type == "Bug"]
-    # print(len(bugReport), end=";")
     print(len(bugReport), end=";")
     train_size = int(len(bugReport) * 0.8)
-    test_bugs = bugReport[:]
-    # test_bugs = bugReport[train_size:]
+    test_bugs = bugReport[train_size:]
 
-    #split according to 20%
-    # test_start = int(len(bugReport)*(train_size-0.2))
-    # test_end = int(len(bugReport)*train_size)
-    # test_bugs = bugReport[test_start:test_end] #split test set
-
-    #split according to number of bug reports
-    # test_bugs = bugReport[train_size-50:train_size]
-    # print(len(test_bugs), end=";")
-
-    # split according to time span
-
-
-    # 计算相似性
+    # calculate similarity between new bug report and previous issues
     for i in range(len(test_bugs)):
-        issue = test_bugs[i]  # 当前的issue
-        index = issues.index(issue)
+        issue = test_bugs[i]  # current issue
+        index = issues.index(issue) #index of current issue
         # # 找到list中符合条件的第一个 然后截取第一个到当前issue的前一个，都是within365的 并且根据sourceFile的数量过滤
         if whole_history==True:
             within365 = issues[:index]
@@ -83,39 +67,14 @@ def calculate(issues, filePath, history):
                 if issue.artifacts[i].issue_id in links:
                     issue.artif_sim[i] = 1.0
 
-    #
-    # # analyze_result(test_bugs)
-
     BF(test_bugs, file)#todo
-
-    print("", end=";")
-    BF_R(test_bugs, history)
-
-    # motivating_example(test_bugs, history)
-    # BM_R(test_bugs, history)
-
-    # BF_RW(test_bugs)#根据修改代码行数不同 设置不同的权重
-
-    # BM_F(test_bugs)
-    # #
-    # BM_R_F(test_bugs)  # 将预测的method转化为文件 根据权重相加
-    #
-    # # # BFM_R(test_bugs)
-    #
-    # BM(test_bugs)
-    # #
-    # BM_R(test_bugs)
-    # # 可以创建一个mapping，《方法，文件》，一个方法只能属于一个文件，根据时间顺序更新mapping，这样保证方法只在最后的文件中，这样能确保删除的文件不再出现
-    # BM_W(test_bugs)
-
-    # BM_RW(test_bugs)
 
 
 path = "C:/Users/Feifei/dataset/tracescore"
 files = os.listdir(path)
 files = ["derby", "drools", "hornetq", "izpack", "keycloak", "log4j2", "railo", "seam2", "teiid", "weld", "wildfly"]
 print(";MAP;MRR;Top 1;Top 5;Top 10;P@1;P@5;P@10;R@1;R@5;R@10;Top 1%; Top 2%;Top 5%;Top 10%;Top 20%;Top 50%;R@1%;R@2%;R@5%;R@10%;R@20%;R@50%")
-for file in files[:]:
+for file in files[2:]:
     print(file, end=" ")
     filePath = path+"\\"+file + ".sqlite3"
     issues = read_sqlite(filePath)

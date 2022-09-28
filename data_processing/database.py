@@ -4,13 +4,12 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import datetime
 import numpy as np
 
-from PatternMining import test
-from cha.CodeBlock import CodeBlock
-from cha.CodeBlockTime import CodeBlockTime
+
+# from cha.CodeBlock import CodeBlock
+# from cha.CodeBlockTime import CodeBlockTime
 from data_processing.File import File
 from data_processing.Issue import Issue
 from data_processing.Method import Method
-from sentence_transformers import SentenceTransformer
 
 def read_files(path): #读取filename,codeblockid的对应关系
     connection = sqlite3.connect(path)
@@ -233,4 +232,3 @@ def read_sqlite(path):
     #     commit.files=set(mapping_files.get(k) for k in commit.files)
 
     return issues
-    # return train_issue, test_issue
