@@ -5,13 +5,9 @@ from data_processing.database import read_sqlite, read_cha, read_files
 import datetime
 from sklearn.metrics.pairwise import cosine_similarity
 
-from BF_R import BF_R
 from BF import BF
-from BF_RW import BF_RW
-from BM import BM
-from BM_R import BM_R
 
-PM = False
+PM = True
 # todo
 if PM == True:
     big_bug_req_filter = True
@@ -19,47 +15,6 @@ if PM == True:
 else:
     big_bug_req_filter = False
     whole_history = True
-
-
-def filter_similarity(test_bugs, threshold):
-    for issue in test_bugs:
-        index = [i for i in range(len(issue.artif_sim)) if issue.artif_sim[i]>threshold]
-        issue.artif_sim = [issue.artif_sim[i] for i in index]
-        issue.artifacts = [issue.artifacts[i] for i in index]
-
-
-def motivating_example(test_bugs, history):
-    cases = {}
-    mapping_file = read_files(filePath)
-    for issue in test_bugs:
-        x1 = issue.predict_bf
-        x2 = issue.predict_bf_r
-        gt_file = set(f.new_filePath for f in issue.files if f.new_filePath!="/dev/null")
-        gt_id = set(f.classBlockID for f in issue.files if f.classBlockID is not None)
-        files = {}
-        for f in gt_file:
-            if f not in x1[:10]:
-                if mapping_file.get(f) in x2[:1] and mapping_file.get(f) in gt_id:
-                    tmp = []
-                    for i in range(len(x1)):
-                        if mapping_file[x1[i]]==mapping_file.get(f):
-                            tmp.append(i)
-                    files[f] = tmp
-        cases[issue] = files
-    # for k,v in cases.items():
-    #     if 1 in k.artif_sim and len(v)>0:
-    #         for i in range(len(k.artifacts)):
-    #             if k.artif_sim[i] == 1:
-    #                 for f in v:
-    #                     if f in [f.new_filePath for f in k.artifacts[i].files if f.new_filePath!="/dev/null"]:
-    #                         print("OK")
-
-
-    print("OK")
-
-
-
-
 
 def calculate(issues, filePath, history):
 # def calculate(issues, filePath, train_size):
@@ -158,19 +113,10 @@ def calculate(issues, filePath, history):
 
 path = "C:/Users/Feifei/dataset/tracescore"
 files = os.listdir(path)
-# files = ["derby", "drools", "izpack", "log4j2", "railo", "seam2"]
 files = ["derby", "drools", "hornetq", "izpack", "keycloak", "log4j2", "railo", "seam2", "teiid", "weld", "wildfly"]
 print(";MAP;MRR;Top 1;Top 5;Top 10;P@1;P@5;P@10;R@1;R@5;R@10;Top 1%; Top 2%;Top 5%;Top 10%;Top 20%;Top 50%;R@1%;R@2%;R@5%;R@10%;R@20%;R@50%")
-# print('issue_id;GT;Prediction;TP;TP/GT;TP/Prediction;Position;Days')
-# for file in files:
 for file in files[:]:
-    # file = "wildfly.sqlite3"
     print(file, end=" ")
     filePath = path+"\\"+file + ".sqlite3"
     issues = read_sqlite(filePath)
-    # history = read_cha(filePath)
-    history = []
-    # train_sizes = [50, 100, 150, 200, 250, 300]
-    # for train_size in train_sizes:
-    #     calculate(issues, filePath, train_size) #for different part of test set
-    calculate(issues, filePath, history)
+    calculate(issues, filePath)
