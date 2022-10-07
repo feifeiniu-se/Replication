@@ -7,19 +7,8 @@ from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.utils import shuffle
 from sklweka.dataset import load_arff, to_nominal_labels
 from sklweka.classifiers import WekaEstimator
-from sklweka.clusters import WekaCluster
-from sklweka.preprocessing import WekaTransformer
-from sklearn.model_selection import cross_val_score, GridSearchCV
-from sklweka.datagenerators import DataGenerator, generate_data
-from weka.classifiers import Evaluation
-from weka.filters import Filter
 from imblearn.under_sampling import RandomUnderSampler
-import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import train_test_split
-from sklearn import metrics
-from sklearn.metrics import confusion_matrix
-
 
 flag_refactor = False
 if flag_refactor==True:
@@ -80,25 +69,16 @@ def DT(train, test):
     # print(prob)
     return [k[1] for k in prob]
 
-def MLP(train, test, extra):
-    x_train = [tmp[2:5] for tmp in train]
+def MLP(train, test):
+    x_train = [tmp[2:-1] for tmp in train]
     y_train = [tmp[-1] for tmp in train]
-    x_test = [tmp[2:5] for tmp in test]
+    x_test = [tmp[2:-1] for tmp in test]
     y_test = [tmp[-1] for tmp in test]
-    if len(extra)>0:
-        for i in range(len(x_train)):
-            for e in extra:
-                x_train[i].append(int(train[i][e] > 0))
-            # x_train[i].append(0)
-        for i in range(len(x_test)):
-            for e in extra:
-                x_test[i].append(int(test[i][e] > 0))
-            # x_test[i].append(0)
 
     y_train = to_nominal_labels(y_train)
     y_test = to_nominal_labels(y_test)
     rus = RandomUnderSampler(random_state=1)
-    print(x_train[0])
+    # print(x_train[0])
     x_train, y_train = rus.fit_resample(x_train, y_train)
     x_train, y_train = shuffle(x_train, y_train)
 

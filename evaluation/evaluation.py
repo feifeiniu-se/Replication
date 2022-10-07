@@ -77,7 +77,7 @@ def getAvPrecision(list_gt, list_pr):
             sum = sum + precision_i
     divide = len(list_gt)
     if (divide == 0):
-        print("xx")
+        # print("xx")
         divide = 1
     return sum / divide
 
@@ -106,16 +106,16 @@ def evaluation(ground_truth, predicted_result):
     #     get_R(k, ground_truth, predicted_result)
 
     # percentage = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 0.999]
-    percentage = [0.01, 0.05, 0.1]
+    # percentage = [0.01, 0.05, 0.1]
 
     # in the top 1% of the prediction, how many can we find the first ground truth
-    for p in percentage:
-        getTopK(p, ground_truth, predicted_result)
+    # for p in percentage:
+    #     getTopK(p, ground_truth, predicted_result)
 
     # for p in percentage:
     #     get_P(p, ground_truth, predicted_result)
 
     # in the top 1% of the prediction,
-    for p in percentage:
-        get_R(p, ground_truth, predicted_result)
+    # for p in percentage:
+    #     get_R(p, ground_truth, predicted_result)
     print()

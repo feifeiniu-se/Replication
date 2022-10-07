@@ -36,8 +36,8 @@ def J48(train, test):
     # j48 = WekaEstimator(classname="weka.classifiers.trees.J48", options=["-C", "0.5"])
 
     # j48 = MLPRegressor(hidden_layer_sizes=(5,), random_state=1, solver="adam", activation='logistic')
-    j48 = MLPClassifier(hidden_layer_sizes=(5,), random_state=1, solver="adam", activation='tanh')
-    # j48 = DecisionTreeClassifier()
+    # j48 = MLPClassifier(hidden_layer_sizes=(5,), random_state=1, solver="adam", activation='tanh')
+    j48 = DecisionTreeClassifier()
     # j48 = RandomForestClassifier(random_state=1)
 
     j48.fit(x_train, y_train)

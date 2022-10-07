@@ -2,25 +2,11 @@
 import sqlite3
 from sklearn.feature_extraction.text import TfidfVectorizer
 import datetime
-import numpy as np
 
-
-# from cha.CodeBlock import CodeBlock
-# from cha.CodeBlockTime import CodeBlockTime
 from data_processing.File import File
 from data_processing.Issue import Issue
-from data_processing.Method import Method
 
-def read_files(path): #读取filename,codeblockid的对应关系
-    connection = sqlite3.connect(path)
-    connection.text_factory = str
-    cursor = connection.cursor()
-    mapping_files = {}# file_name, codeBlockID
-    cursor.execute("select * from Files")
-    result = cursor.fetchall()
-    for tmp in result:
-        mapping_files[tmp[0]] = tmp[1]
-    return mapping_files
+
 
 def read_text_sqlite(issues, path):
     issue_map = {}
@@ -33,35 +19,55 @@ def read_text_sqlite(issues, path):
         issue_map[tmp[0]] = tmp
 
     for issue in issues:
-        issue.original_summary = issue_map[issue.issue_id][1]
-        issue.original_description = issue_map[issue.issue_id][2]
+        issue.summary = issue_map[issue.issue_id][1]
+        issue.description = issue_map[issue.issue_id][2]
     return issues
 
-def read_cha(path):
+
+def insert_database_tracescore(path, bugs):
+    data = []
+    for bug in bugs:
+        if len(bug.simi_score)>0:
+            for f in bug.simi_score:
+                x = [bug.issue_id, f, bug.simi_score[f]]
+                data.append(x)
+
     connection = sqlite3.connect(path)
     connection.text_factory = str
     cursor = connection.cursor()
-    cursor.execute("select * from CodeBlock")
-    result = cursor.fetchall()
-    history = {}
-    codeBlockTime = {}
-    for tmp in result:
-        history[tmp[0]] = CodeBlock(tmp)
+    cursor.execute("drop table if exists TraceScore")
+    cursor.execute("create table TraceScore (issue_id text, file_path text, score text)")
+    cursor.executemany("insert into TraceScore values(?,?,?)", data)
+    connection.commit()
+    cursor.close()
+    connection.close()
 
-    cursor.execute("select * from CodeBlockTime")
+#load bluir, cache, simi score
+def read_scores(path, issues):
+
+    issue_map = {issue.issue_id:issue for issue in issues}
+
+    connection = sqlite3.connect(path)
+    connection.text_factory = str
+    cursor = connection.cursor()
+    cursor.execute("select * from Bluir")
     result = cursor.fetchall()
     for tmp in result:
-        cbt = CodeBlockTime(tmp, history)
-        history[tmp[5]].History.append(cbt)
-        codeBlockTime[cbt.id] = cbt
+        issue = issue_map[tmp[0]]
+        issue.bluir_score[tmp[1]] = float(tmp[2])
 
-    cursor.execute("select * from CodeBlockTime_link where link_type=1")
+    cursor.execute("select * from TraceScore")
     result = cursor.fetchall()
     for tmp in result:
-        codeBlockTime[tmp[0]].derivee.add(codeBlockTime[tmp[1]].owner)
-        codeBlockTime[tmp[1]].deriver.add(codeBlockTime[tmp[0]].owner)
+        issue = issue_map[tmp[0]]
+        issue.simi_score[tmp[1]] = float(tmp[2])
 
-    return history
+    cursor.execute("select * from Cache")
+    result = cursor.fetchall()
+    for tmp in result:
+        issue = issue_map[tmp[0]]
+        if tmp[1] in issue.simi_score or tmp[1] in issue.bluir_score:
+            issue.cache_score[tmp[1]] = float(tmp[2])
 
 
 def read_sqlite(path):
@@ -85,19 +91,9 @@ def read_sqlite(path):
     vectorizer.fit(texts)
     for issue in issues:
         issue.tfidf = vectorizer.transform([issue.summary_stem + " " + issue.description_stem]).toarray()[0:1]
-    # bert
-    # model = SentenceTransformer('sentence-transformers/all-distilroberta-v1')
-    # for issue in issues:
-    #     issue.tfidf = model.encode([issue.summary_stem+" "+issue.description_stem])
-
 
     # # 读取files
-    # cursor.execute("select commit_hash, file_path, sum_added_lines, sum_removed_lines, codeBlockID, issue_id from v_code_change where codeBlockID!=0")
-    # cursor.execute("select commit_hash, new_path, last_modify_hash, change_type, new_codeBlockID, last_modify_date, issue_id, committed_date, commit_hash from v_code_change_file where new_path!='/dev/null' and new_codeBlockID!=0")# 新的数据集 经验证完全一致
-    #采用new_filePath 用于训练，采用filePath用于评估
     cursor.execute("select commit_hash, file_path, last_modify_hash, change_type, codeBlockID, last_modify_date, issue_id, committed_date, commit_hash, new_path, new_codeBlockID from v_code_change_file")
-    # 更新ground truth 为只包含delete，modify的文件，不包含add的文件
-    # cursor.execute("select commit_hash, file_path, last_modify_hash, change_type, codeBlockID, last_modify_date, issue_id, committed_date, commit_hash from v_code_change_file where file_path!='/dev/null' and codeBlockID!=0")
 
     result = cursor.fetchall()
     for tmp in result:
@@ -117,26 +113,6 @@ def read_sqlite(path):
     # issues.sort(key=lambda x: datetime.datetime.strptime(str(x.first_commit_date), "%Y-%m-%d %H:%M:%S")) #根据第一个提交的时间重新排序 todo
     # print()
 
-    # # # 读取methods
-    # cursor.execute(
-    #     "select commit_hash, file_path, method_name, type, startLine, endLine, addLineNum, deleteLineNum, codeBlockID, issue_id from v_code_change_method where codeBlockID!=0 ")
-    # result = cursor.fetchall()
-    # for tmp in result:
-    #     issue = issue_map[tmp[9]]
-    #     file = issue.findFile(tmp[1], tmp[0])
-    #     if file is not None:
-    #         file.methods.add(Method(tmp))
-    #
-    # #  更新每个file，如果file中没有方法，就加入file name
-    # for issue in issues:
-    #     for file in issue.files:
-    #         if len(file.methods)==0:
-    #             if file.classBlockID is not None:
-    #                 file.methods.add(Method(("", "", file.filePath[:-5].replace("/", ".")+".NonMethodPart:nonMethodPart", "", "", "", "", "", file.classBlockID)))
-    #             if file.new_classBlockID is not None:
-    #                 file.methods.add(Method(("", "", file.new_filePath[:-5].replace("/", ".")+".NonMethodPart:nonMethodPart", "", "", "", "", "", file.new_classBlockID)))
-
-
     # 读取每个commit所对应的source code list
     map_file = {} # commit_hash, source code files
     connection.text_factory = str
@@ -146,7 +122,7 @@ def read_sqlite(path):
     for tmp in result:
         map_file[tmp[0]] = tmp[1]
 
-    # # 读取每个issue中包含的commit_hash,并设置source_files 为所有commit_hash的souce code的并集
+    # # 读取每个issue中包含的commit_hash,并设置source_files 为所有commit_hash的source code的并集
     # cursor.execute("select issue_id, commit_hash as b from v_code_change group by issue_id, commit_hash")
     # result = cursor.fetchall()
     # for tmp in result:
@@ -166,69 +142,7 @@ def read_sqlite(path):
     for tmp in result:
         mapping_files[tmp[0]] = tmp[1]
 
-    # 更新issue.source_files_ID
-    for issue in issues:
-        issue.source_files_ID = set([mapping_files[f] for f in issue.source_files if f in mapping_files])
-
-    # cursor.execute("select * from Cache")
-    # result = cursor.fetchall()
-    # # print(len(result))
-    # for tmp in result:
-    #     issue = issue_map[tmp[0]]
-    #     # print(issue.issue_id)
-    #     issue_map[tmp[0]].cache_score[tmp[1]] = float(tmp[2])
-
-    # # 读取cache和bluir的结果
-    # connection.text_factory = str
-    # cursor = connection.cursor()
-    # cursor.execute("select * from Cache where issue_id in (select issue_id from v_issue_statistic)")
-    # result = cursor.fetchall()
-    # for tmp in result:
-    #     issue = issue_map[tmp[0]]
-    #     issue.cache_score[tmp[1]] = float(tmp[2])
-    #     # print(tmp)
-    #     if tmp[1] in mapping_files:
-    #         file_id = mapping_files[tmp[1]]
-    #         if file_id in issue.cache_id_score:
-    #             issue.cache_id_score[file_id] = issue.cache_id_score[file_id] + float(tmp[2])
-    #         else:
-    #             issue.cache_id_score[file_id] = float(tmp[2])
-
-    # cursor.execute("select * from Cache_new where issue_id in (select issue_id from v_issue_statistic)")
-    # result = cursor.fetchall()
-    # for tmp in result:
-    #     issue = issue_map[tmp[0]]
-    #     issue.cache_score_new[tmp[1]] = list(map(int, tmp[2:]))
-    #     if tmp[1] in mapping_files:
-    #         file_id = mapping_files[tmp[1]]
-    #         if file_id in issue.cache_id_score_new:
-    #             issue.cache_id_score_new[file_id] = np.array(issue.cache_id_score_new[file_id]) + np.array(list(map(int, tmp[2:])))
-    #         else:
-    #             issue.cache_id_score_new[file_id] = list(map(int, tmp[2:]))
-
-    # cursor.execute("select * from Bluir where issue_id in (select issue_id from v_issue_statistic)")
-    # result = cursor.fetchall()
-    # for tmp in result:
-    #     issue = issue_map[tmp[0]]
-    #     issue.bluir_score[tmp[1]] = float(tmp[2])
-    #     if mapping_files[tmp[1]] in issue.bluir_id_score:
-    #         issue.bluir_id_score[mapping_files[tmp[1]]] = max(float(tmp[2]), issue.bluir_id_score[mapping_files[tmp[1]]])
-    #     else:
-    #         issue.bluir_id_score[mapping_files[tmp[1]]] = float(tmp[2])
-
-    # cursor.execute("select * from SimiScore")
-    # result = cursor.fetchall()
-    # for tmp in result:
-    #     issue = issue_map[tmp[0]]
-    #     issue.simi_id_score[tmp[1]] = float(tmp[2])
-
-
     cursor.close()
     connection.close()
-
-    # filepath2 = path.replace("tracescore", "issues")
-    # commits = test.read_commits_all(filepath2)
-    # for commit in commits:
-    #     commit.files=set(mapping_files.get(k) for k in commit.files)
 
     return issues

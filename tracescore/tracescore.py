@@ -1,7 +1,7 @@
 import sqlite3
 import os
 
-from data_processing.database import read_sqlite
+from data_processing.database import read_sqlite, insert_database_tracescore
 from sklearn.metrics.pairwise import cosine_similarity
 
 from BF import BF
@@ -19,9 +19,8 @@ def calculate(issues, filePath):
     bugReport = [x for x in issues if x.issue_type == "Bug"]
     print(len(bugReport), end=";")
     train_size = int(len(bugReport) * 0.8)
-    test_bugs = bugReport[train_size:]
+    test_bugs = bugReport[:]
 
-    # calculate similarity between new bug report and previous issues
     for i in range(len(test_bugs)):
         issue = test_bugs[i]  # current issue
         index = issues.index(issue) #index of current issue
@@ -67,14 +66,16 @@ def calculate(issues, filePath):
                 if issue.artifacts[i].issue_id in links:
                     issue.artif_sim[i] = 1.0
 
-    BF(test_bugs, file)#todo
+    BF(test_bugs)#todo
+
+    # insert_database_tracescore(filePath, test_bugs)
 
 
 path = "C:/Users/Feifei/dataset/tracescore"
 files = os.listdir(path)
 files = ["derby", "drools", "hornetq", "izpack", "keycloak", "log4j2", "railo", "seam2", "teiid", "weld", "wildfly"]
-print(";MAP;MRR;Top 1;Top 5;Top 10;P@1;P@5;P@10;R@1;R@5;R@10;Top 1%; Top 2%;Top 5%;Top 10%;Top 20%;Top 50%;R@1%;R@2%;R@5%;R@10%;R@20%;R@50%")
-for file in files[2:]:
+print(";MAP;MRR;Top 1;Top 5;Top 10")
+for file in files[:]:
     print(file, end=" ")
     filePath = path+"\\"+file + ".sqlite3"
     issues = read_sqlite(filePath)
