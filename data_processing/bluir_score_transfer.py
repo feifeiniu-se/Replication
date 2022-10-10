@@ -4,7 +4,7 @@ import sqlite3
 def read_indriQueryResult(project):
     # read from index
 
-    path = "C:/Users/Feifei/test/BLUiR_" + project+"/"
+    path = "C:/Users/Feifei/bluir/BLUiR_" + project+"/"
     index = path + "FileIndex.txt"
     bluir_score = path + "indriQueryResult"
     fIndex = open(index, encoding='utf-8')
@@ -42,7 +42,7 @@ def read_indriQueryResult(project):
     insert_database(project, issue_mapping)
 
 def insert_database(project, issue_mapping):
-    path = "C:/Users/Feifei/dataset/tracescore/" + project+".sqlite3"
+    path = "C:/Users/Feifei/dataset/issues/" + project+".sqlite3"
     data = []
     for issue, files in issue_mapping.items():
         for f,s in files.items():
@@ -52,6 +52,7 @@ def insert_database(project, issue_mapping):
     connection = sqlite3.connect(path)
     connection.text_factory = str
     cursor = connection.cursor()
+    cursor.execute("drop table if exists Bluir")
     cursor.execute("create table Bluir (issue_id text, file_path text, score text)")
     cursor.executemany("insert into Bluir values(?,?,?)", data)
     connection.commit()
@@ -61,7 +62,7 @@ def insert_database(project, issue_mapping):
 
 
 # projects = ["derby", "drools", "hornetq", "izpack", "keycloak", "log4j2", "railo", "seam2", "teiid", "weld", "wildfly"]
-projects = [ "teiid", "wildfly"]
-for p in projects:
+projects = ["archiva", "axis2", "cassandra", "derby", "drools", "errai", "flink", "groovy", "hadoop", "hbase", "hibernate", "hive", "hornetq", "infinispan", "izpack", "jbehave", "jboss-transaction-manager", "jbpm", "kafka", "keycloak", "log4j2", "lucene", "maven", "pig", "railo", "resteasy", "seam2", "spark", "switchyard", "teiid", "weld", "wildfly", "zookeeper"]
+for p in projects[2:3]:
     print(p)
     read_indriQueryResult(p)

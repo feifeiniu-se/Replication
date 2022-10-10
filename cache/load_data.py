@@ -12,7 +12,7 @@ def read_commits(path):
     connection = sqlite3.connect(path)
     connection.text_factory = str
     cursor = connection.cursor()
-    cursor.execute("select commit_hash, committed_date, message, file_path from v_commit_change_file where is_deleted=0 and file_path like '%.java%'")
+    cursor.execute("select commit_hash, committed_date, message, file_path from v_commit_change_file where is_deleted=0 and file_path like '%.java'")
     result = cursor.fetchall()
 
     for tmp in result:
@@ -38,8 +38,6 @@ def insert_database(path, bugs):
     connection.text_factory = str
     cursor = connection.cursor()
     cursor.execute("drop table if exists Cache")
-    cursor.execute("drop table if exists Cache_new")
-    cursor.execute("drop table if exists Cache_PM")
     cursor.execute("create table Cache (issue_id text, file_path text, score text)")
     cursor.executemany("insert into Cache values(?,?,?)", data)
     connection.commit()

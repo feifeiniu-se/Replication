@@ -53,24 +53,27 @@ def read_scores(path, issues):
     cursor.execute("select * from Bluir")
     result = cursor.fetchall()
     for tmp in result:
-        issue = issue_map[tmp[0]]
-        issue.bluir_score[tmp[1]] = float(tmp[2])
+        if tmp[0] in issue_map:
+            issue = issue_map[tmp[0]]
+            issue.bluir_score[tmp[1]] = float(tmp[2])
 
     cursor.execute("select * from TraceScore")
     result = cursor.fetchall()
     for tmp in result:
-        issue = issue_map[tmp[0]]
-        issue.simi_score[tmp[1]] = float(tmp[2])
+        if tmp[0] in issue_map:
+            issue = issue_map[tmp[0]]
+            issue.simi_score[tmp[1]] = float(tmp[2])
 
     cursor.execute("select * from Cache")
     result = cursor.fetchall()
     for tmp in result:
-        issue = issue_map[tmp[0]]
-        if tmp[1] in issue.simi_score or tmp[1] in issue.bluir_score:
-            issue.cache_score[tmp[1]] = float(tmp[2])
+        if tmp[0] in issue_map:
+            issue = issue_map[tmp[0]]
+            if tmp[1] in issue.simi_score or tmp[1] in issue.bluir_score:
+                issue.cache_score[tmp[1]] = float(tmp[2])
 
 
-def read_sqlite(path):
+def read_tracescore(path):
     issue_map = {} # <issue_id, issue>
     connection = sqlite3.connect(path)
     connection.text_factory = str
@@ -85,14 +88,14 @@ def read_sqlite(path):
         issues.append(new_issue)
         issue_map[new_issue.issue_id] = new_issue
 
-    # # tfidf值
+    # # tfidf
     texts = [x.summary_stem+" "+x.description_stem for x in issues if x.issue_type=="Bug"]
     vectorizer = TfidfVectorizer(encoding='utf-8')
     vectorizer.fit(texts)
     for issue in issues:
         issue.tfidf = vectorizer.transform([issue.summary_stem + " " + issue.description_stem]).toarray()[0:1]
 
-    # # 读取files
+    # # read files
     cursor.execute("select commit_hash, file_path, last_modify_hash, change_type, codeBlockID, last_modify_date, issue_id, committed_date, commit_hash, new_path, new_codeBlockID from v_code_change_file")
 
     result = cursor.fetchall()
@@ -100,8 +103,7 @@ def read_sqlite(path):
         issue = issue_map[tmp[6]]
         issue.files.append(File(tmp))
 
-
-        # 增加第一次commit的时间 以及首次commit的hash
+        # time of first commit, and first commit hash
         if datetime.datetime.strptime(str(issue.first_commit_date), "%Y-%m-%d %H:%M:%S") > datetime.datetime.strptime(tmp[7].replace("T", " ").replace("Z", ""), "%Y-%m-%d %H:%M:%S"):
             issue.first_commit_date = datetime.datetime.strptime(tmp[7].replace("T", " ").replace("Z", ""), "%Y-%m-%d %H:%M:%S")
             issue.first_commit_hash = set()
@@ -109,7 +111,7 @@ def read_sqlite(path):
         if datetime.datetime.strptime(str(issue.first_commit_date), "%Y-%m-%d %H:%M:%S") == datetime.datetime.strptime(tmp[7].replace("T", " ").replace("Z", ""), "%Y-%m-%d %H:%M:%S"):
             issue.first_commit_hash.add(tmp[8])
 
-    #根据第一次提交的时间进行排序
+    #reorder according to the first commit time
     # issues.sort(key=lambda x: datetime.datetime.strptime(str(x.first_commit_date), "%Y-%m-%d %H:%M:%S")) #根据第一个提交的时间重新排序 todo
     # print()
 
@@ -135,12 +137,11 @@ def read_sqlite(path):
             files = map_file[hash].replace("[","").replace("]","").split(", ")
             issue.source_files.update(tuple(files))
 
-
-    mapping_files = {}# file_name, codeBlockID
-    cursor.execute("select * from Files")
-    result = cursor.fetchall()
-    for tmp in result:
-        mapping_files[tmp[0]] = tmp[1]
+    # mapping_files = {}# file_name, codeBlockID
+    # cursor.execute("select * from Files")
+    # result = cursor.fetchall()
+    # for tmp in result:
+    #     mapping_files[tmp[0]] = tmp[1]
 
     cursor.close()
     connection.close()

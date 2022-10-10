@@ -1,10 +1,10 @@
 import sqlite3
 import os
 
-from data_processing.database import read_sqlite, insert_database_tracescore
+from data_processing.database import read_tracescore, insert_database_tracescore
 from sklearn.metrics.pairwise import cosine_similarity
 
-from BF import BF
+from tracescore.BF import BF
 
 PM = True
 # todo
@@ -70,13 +70,13 @@ def calculate(issues, filePath):
 
     # insert_database_tracescore(filePath, test_bugs)
 
-
-path = "C:/Users/Feifei/dataset/tracescore"
-files = os.listdir(path)
-files = ["derby", "drools", "hornetq", "izpack", "keycloak", "log4j2", "railo", "seam2", "teiid", "weld", "wildfly"]
-print(";MAP;MRR;Top 1;Top 5;Top 10")
-for file in files[:]:
-    print(file, end=" ")
-    filePath = path+"\\"+file + ".sqlite3"
-    issues = read_sqlite(filePath)
-    calculate(issues, filePath)
+#
+# path = "C:/Users/Feifei/dataset/tracescore"
+# files = os.listdir(path)
+# files = ["derby", "drools", "hornetq", "izpack", "keycloak", "log4j2", "railo", "seam2", "teiid", "weld", "wildfly"]
+# print(";MAP;MRR;Top 1;Top 5;Top 10")
+# for file in files[:]:
+#     print(file, end=" ")
+#     filePath = path+"\\"+file + ".sqlite3"
+#     issues = read_sqlite(filePath)
+#     calculate(issues, filePath)

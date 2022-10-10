@@ -83,7 +83,6 @@ def calculate(issues):
 
 path = "C:/Users/Feifei/dataset/tracescore"
 files = os.listdir(path)
-# files = ["derby", "drools", "izpack", "log4j2", "railo", "seam2"]
 files = ["derby", "drools", "hornetq", "izpack", "keycloak", "log4j2", "railo", "seam2", "teiid", "weld", "wildfly"]
 print(";MAP;MRR;Top 1;Top 5;Top 10;P@1;P@5;P@10;R@1;R@5;R@10;Top 1%; Top 2%;Top 5%;Top 10%;Top 20%;Top 50%;R@1%;R@2%;R@5%;R@10%;R@20%;R@50%")
 for file in files[10:]:

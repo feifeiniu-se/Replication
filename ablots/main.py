@@ -1,8 +1,9 @@
 import os
 
 from ablots.classifier import MLP
-from data_processing.database import read_sqlite, read_scores
+from data_processing.database import read_tracescore, read_scores
 from evaluation.evaluation import evaluation
+from replication.read import read_issues
 
 PM = True
 # todo
@@ -15,7 +16,7 @@ else:
 
 
 def evaluate(test):
-    ground_truth = [set(f.new_filePath for f in issue.files if f.new_filePath != "/dev/null") for issue in test]
+    ground_truth = [set(f.new_filePath for f in issue.files if f.new_filePath != "/dev/null" and f.new_filePath is not None) for issue in test]
 
     predict_result = [issue.ablots for issue in test]
     evaluation(ground_truth, predict_result)
@@ -28,7 +29,7 @@ def evaluate3(issues):
     bugReport.sort(key=lambda x: x.fixed_date)
     test = bugReport[train_size:]
 
-    ground_truth = [set(f.new_filePath for f in issue.files if f.new_filePath != "/dev/null") for issue in test]
+    ground_truth = [set(f.new_filePath for f in issue.files if f.new_filePath != "/dev/null" and f.new_filePath is not None) for issue in test]
     for issue in test:
         predict = issue.cache_score
         sorted_files = sorted(predict.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)
@@ -52,7 +53,7 @@ def reRank(test, pairs_test, result):
 def make_pairs(issues):
     pairs = []
     for issue in issues:
-        ground_truth = set(f.new_filePath for f in issue.files if f.new_filePath != "/dev/null")
+        ground_truth = set(f.new_filePath for f in issue.files if f.new_filePath != "/dev/null" and f.new_filePath is not None)
         file_candidate = []
         file_candidate.extend([f for f in issue.bluir_score])
         file_candidate.extend([f for f in issue.simi_score])
@@ -103,17 +104,30 @@ def calculate(issues):
     # evaluate(test, "ablots")
 
 
+# # tracescore dataset
+# path = "C:/Users/Feifei/dataset/tracescore"
+# files = os.listdir(path)
+# # files = ["derby", "drools", "izpack", "log4j2", "railo", "seam2"]
+# files = ["derby", "drools", "hornetq", "izpack", "keycloak", "log4j2", "railo", "seam2", "teiid", "weld", "wildfly"]
+# print(";MAP;MRR;Top 1;Top 5;Top 10")
+# for file in files[:]:
+#     print(file, end=" ")
+#     filePath = path+"\\"+file + ".sqlite3"
+#     issues = read_sqlite(filePath)
+#     read_scores(filePath, issues)
+#     # evaluate3(issues)
+#     calculate(issues)
 
-
-path = "C:/Users/Feifei/dataset/tracescore"
+#issues dataset
+path = "C:/Users/Feifei/dataset/issues"
 files = os.listdir(path)
 # files = ["derby", "drools", "izpack", "log4j2", "railo", "seam2"]
-files = ["derby", "drools", "hornetq", "izpack", "keycloak", "log4j2", "railo", "seam2", "teiid", "weld", "wildfly"]
+files = ["archiva", "axis2", "cassandra", "derby", "drools", "errai", "flink", "groovy", "hadoop", "hbase", "hibernate", "hive", "hornetq", "infinispan", "izpack", "jbehave", "jboss-transaction-manager", "jbpm", "kafka", "keycloak", "log4j2", "lucene", "maven", "pig", "railo", "resteasy", "seam2", "spark", "switchyard", "teiid", "weld", "wildfly", "zookeeper"]
 print(";MAP;MRR;Top 1;Top 5;Top 10")
-for file in files[:]:
+for file in files[0:1]:
     print(file, end=" ")
     filePath = path+"\\"+file + ".sqlite3"
-    issues = read_sqlite(filePath)
+    issues = read_issues(filePath)
     read_scores(filePath, issues)
     # evaluate3(issues)
     calculate(issues)
