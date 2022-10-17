@@ -4,7 +4,7 @@ import datetime
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from data_processing.File import File
+from data_processing.File_tracescore import File_tracescore
 from data_processing.Issue import Issue
 from tracescore.File_issues import File_issues
 
@@ -47,6 +47,20 @@ def read_issues(path):
             issue.first_commit_hash.add(tmp[1])
 
     # read source files for each commit #todo
+    # source code list
+    map_file = {} # commit_hash, source code files
+    connection.text_factory = str
+    cursor = connection.cursor()
+    cursor.execute("select * from Commit_files_link")
+    result = cursor.fetchall()
+    for tmp in result:
+        map_file[tmp[0]] = tmp[1]
+
+    for issue in issues:
+        if issue.issue_type=='Bug':
+            for hash in issue.first_commit_hash:
+                files = map_file[hash].replace("[","").replace("]","").split(", ")
+                issue.source_files.update(tuple(files))
 
     cursor.close()
     connection.close()

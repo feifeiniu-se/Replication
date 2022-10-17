@@ -1,7 +1,7 @@
 import sqlite3
 
 from cache.Commit import Commit
-from data_processing.File import File
+from data_processing.File_tracescore import File_tracescore
 from data_processing.Issue import Issue
 import datetime
 import numpy as np

@@ -1,6 +1,6 @@
 import os
 
-from ablots.classifier import MLP
+from ablots.classifier import  DT
 from data_processing.database import read_tracescore, read_scores
 from evaluation.evaluation import evaluation
 from replication.read import read_issues
@@ -21,7 +21,7 @@ def evaluate(test):
     predict_result = [issue.ablots for issue in test]
     evaluation(ground_truth, predict_result)
 
-def evaluate3(issues):
+def evaluate3(issues, flag):
     bugReport = [x for x in issues if x.issue_type == "Bug"]
     print(len(bugReport), end=";")
     train_size = int(len(bugReport) * 0.8)
@@ -31,10 +31,15 @@ def evaluate3(issues):
 
     ground_truth = [set(f.new_filePath for f in issue.files if f.new_filePath != "/dev/null" and f.new_filePath is not None) for issue in test]
     for issue in test:
-        predict = issue.cache_score
+        if flag=="cache":
+            predict = issue.cache_score
+        elif flag=="bluir":
+            predict = issue.bluir_score
+        elif flag=="tracescore":
+            predict = issue.simi_score
         sorted_files = sorted(predict.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)
-        issue.bluir = [x[0] for x in sorted_files]
-    predict_result = [issue.bluir for issue in test]
+        issue.predict_bf = [x[0] for x in sorted_files if x[0] in issue.source_files]
+    predict_result = [issue.predict_bf for issue in test]
     evaluation(ground_truth, predict_result)
 
 
@@ -47,7 +52,7 @@ def reRank(test, pairs_test, result):
     for issue in test:
         predict = issue.ablots_score
         sorted_files = sorted(predict.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)
-        issue.ablots = [x[0] for x in sorted_files]
+        issue.ablots = [x[0] for x in sorted_files if x[0] in issue.source_files]
 
 
 def make_pairs(issues):
@@ -66,9 +71,9 @@ def make_pairs(issues):
             value.append(issue.bluir_score[f] if f in issue.bluir_score else 0)
             value.append(issue.simi_score[f] if f in issue.simi_score else 0)
             if f in ground_truth:
-                value.append("bug")
+                value.append(1)
             else:
-                value.append("no_bug")
+                value.append(-1)
             pairs.append(value)
     return pairs
 
@@ -83,7 +88,6 @@ def calculate(issues):
     test = bugReport[train_size:]
     train = bugReport[:train_size]
 
-    # j48 model train
     pairs_train = make_pairs(train)
     pairs_test = make_pairs(test)
 
@@ -91,20 +95,38 @@ def calculate(issues):
     # result = J48(pairs_train, pairs_test)
 
     # DT
-    # result = DT(pairs_train, pairs_test)
-
-    # MLP
-    result = MLP(pairs_train, pairs_test)
+    result = DT(pairs_train, pairs_test)
     reRank(test, pairs_test, result)
     evaluate(test)
 
-    #RF
-    # result = RF(pairs_train, pairs_test)
-    # reRank(test, pairs_test, result)
-    # evaluate(test, "ablots")
+def calculate_fixed(issues):
+    bugReport = [x for x in issues if x.issue_type=="Bug"]
+    train_size = int(len(bugReport) * 0.8)
+
+    bugReport.sort(key=lambda x: x.fixed_date)
+    test = bugReport[train_size:]
+
+    for issue in test:
+        amalgam_score = {}
+        file_candidate = []
+        file_candidate.extend([f for f in issue.bluir_score])
+        file_candidate.extend([f for f in issue.simi_score])
+        file_candidate = set(file_candidate)
+        for f in file_candidate:
+            cache_score = issue.cache_score[f] if f in issue.cache_score else 0
+            bluir_score = issue.bluir_score[f] if f in issue.bluir_score else 0
+            simi_score = issue.simi_score[f] if f in issue.simi_score else 0
+            score = (0.2 * simi_score + 0.8 * bluir_score) * 0.7 + cache_score * 0.3
+            amalgam_score[f] = score
+        sorted_files = sorted(amalgam_score.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)
+        issue.ablots = [x[0] for x in sorted_files if x[0] in issue.source_files]
 
 
-# # tracescore dataset
+    evaluate(test)
+
+
+
+# # # old dataset
 # path = "C:/Users/Feifei/dataset/tracescore"
 # files = os.listdir(path)
 # # files = ["derby", "drools", "izpack", "log4j2", "railo", "seam2"]
@@ -113,21 +135,25 @@ def calculate(issues):
 # for file in files[:]:
 #     print(file, end=" ")
 #     filePath = path+"\\"+file + ".sqlite3"
-#     issues = read_sqlite(filePath)
+#     issues = read_tracescore(filePath)
 #     read_scores(filePath, issues)
-#     # evaluate3(issues)
-#     calculate(issues)
+#     # evaluate3(issues, "tracescore")
+#     # calculate(issues)
+#     calculate_fixed(issues)
 
-#issues dataset
+#new dataset
 path = "C:/Users/Feifei/dataset/issues"
 files = os.listdir(path)
 # files = ["derby", "drools", "izpack", "log4j2", "railo", "seam2"]
-files = ["archiva", "axis2", "cassandra", "derby", "drools", "errai", "flink", "groovy", "hadoop", "hbase", "hibernate", "hive", "hornetq", "infinispan", "izpack", "jbehave", "jboss-transaction-manager", "jbpm", "kafka", "keycloak", "log4j2", "lucene", "maven", "pig", "railo", "resteasy", "seam2", "spark", "switchyard", "teiid", "weld", "wildfly", "zookeeper"]
+files = ["archiva", "cassandra", "errai", "flink", "groovy", "hbase", "hibernate", "hive", "jboss-transaction-manager", "kafka", "lucene", "maven", "resteasy", "spark", "switchyard", "zookeeper"]
+# "jbehave", "jbpm"
 print(";MAP;MRR;Top 1;Top 5;Top 10")
-for file in files[0:1]:
+for file in files[3:]:
     print(file, end=" ")
     filePath = path+"\\"+file + ".sqlite3"
     issues = read_issues(filePath)
     read_scores(filePath, issues)
-    # evaluate3(issues)
-    calculate(issues)
+    issues = [issue for issue in issues if len(issue.files) > 0]
+    # evaluate3(issues,"cache")
+    # calculate(issues)
+    calculate_fixed(issues)

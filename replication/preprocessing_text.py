@@ -28,8 +28,7 @@ def text_preprocessing(texts):
         s = nltk.stem.SnowballStemmer('english')
         text_list = [s.stem(ws) for ws in text]
         # print(text)
-        # 此时返回一个词组列表" ".join(text)
-        text = " ".join(text)
+        text = " ".join(text_list)
         result.append(text)
     return result
 
@@ -60,8 +59,8 @@ for file in files[:]:
         data.append(x)
 
     cursor = connection.cursor()
-    cursor.execute("alter table issue add column summary_stem text")
-    cursor.execute("alter table issue add column description_stem text")
+    # cursor.execute("alter table issue add column summary_stem text")
+    # cursor.execute("alter table issue add column description_stem text")
     cursor.executemany("update issue set summary_stem = ?, description_stem = ? where issue_id = ?", data)
     connection.commit()
     cursor.close()

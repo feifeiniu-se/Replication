@@ -14,8 +14,8 @@ def BF(test_bugs):
 
         issue.simi_score = files
         sorted_files = sorted(files.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)
-        issue.predict_bf = [x[0] for x in sorted_files]
-        # issue.predict_bf = [x[0] for x in sorted_files if x[0] in issue.source_files]#todo
+        # issue.predict_bf = [x[0] for x in sorted_files]
+        issue.predict_bf = [x[0] for x in sorted_files if x[0] in issue.source_files]#todo
 
 
     # evaluation
