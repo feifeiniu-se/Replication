@@ -99,23 +99,4 @@ def evaluation(ground_truth, predicted_result):
     Ks = [1, 5, 10]
     for k in Ks:
         getTopK(k, ground_truth, predicted_result)
-    #     precision recall
-    # for k in Ks:
-    #     get_P(k, ground_truth, predicted_result)
-    # for k in Ks:
-    #     get_R(k, ground_truth, predicted_result)
-
-    # percentage = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 0.999]
-    # percentage = [0.01, 0.05, 0.1]
-
-    # in the top 1% of the prediction, how many can we find the first ground truth
-    # for p in percentage:
-    #     getTopK(p, ground_truth, predicted_result)
-
-    # for p in percentage:
-    #     get_P(p, ground_truth, predicted_result)
-
-    # in the top 1% of the prediction,
-    # for p in percentage:
-    #     get_R(p, ground_truth, predicted_result)
     print()

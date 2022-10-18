@@ -1,4 +1,3 @@
-# "C:/Users/Feifei/dataset/tracescore/arffs/derby_train.arff"
 # use patrick mader's data set and decision tree to see the result
 import arff
 from sklearn.neural_network import MLPClassifier, MLPRegressor
@@ -12,7 +11,7 @@ from evaluation.evaluation import evaluation
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 
-jvm.start(packages=True)
+# jvm.start(packages=True)
 def J48(train, test):
 
     x_train = [tmp[1:4] for tmp in train]
@@ -37,12 +36,14 @@ def J48(train, test):
 
     # j48 = MLPRegressor(hidden_layer_sizes=(5,), random_state=1, solver="adam", activation='logistic')
     # j48 = MLPClassifier(hidden_layer_sizes=(5,), random_state=1, solver="adam", activation='tanh')
-    j48 = DecisionTreeClassifier()
+    j48 = DecisionTreeClassifier(criterion="gini", min_samples_split=100, max_depth = 16)
     # j48 = RandomForestClassifier(random_state=1)
 
     j48.fit(x_train, y_train)
     y_pred = j48.predict(x_test)
     prob = j48.predict_proba(x_test)
+    feat_importance = j48.tree_.compute_feature_importances(normalize=False)
+    # print(feat_importance)
     # # result = [test[i] for i in range(len(test)) if scores[i]=="_bug"]
     if y_pred[0] == '_bug':
         assert prob[0][0] > prob[0][1]

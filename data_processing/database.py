@@ -3,7 +3,7 @@ import sqlite3
 from sklearn.feature_extraction.text import TfidfVectorizer
 import datetime
 
-from data_processing.File import File
+from data_processing.File_tracescore import File_tracescore
 from data_processing.Issue import Issue
 
 
@@ -96,26 +96,22 @@ def read_tracescore(path):
         issue.tfidf = vectorizer.transform([issue.summary_stem + " " + issue.description_stem]).toarray()[0:1]
 
     # # read files
-    cursor.execute("select commit_hash, file_path, last_modify_hash, change_type, codeBlockID, last_modify_date, issue_id, committed_date, commit_hash, new_path, new_codeBlockID from v_code_change_file")
+    cursor.execute("select issue_id, commit_hash, file_path, committed_date from v_code_change")
 
     result = cursor.fetchall()
     for tmp in result:
-        issue = issue_map[tmp[6]]
-        issue.files.append(File(tmp))
+        issue = issue_map[tmp[0]]
+        issue.files.append(File_tracescore(tmp))
 
         # time of first commit, and first commit hash
-        if datetime.datetime.strptime(str(issue.first_commit_date), "%Y-%m-%d %H:%M:%S") > datetime.datetime.strptime(tmp[7].replace("T", " ").replace("Z", ""), "%Y-%m-%d %H:%M:%S"):
-            issue.first_commit_date = datetime.datetime.strptime(tmp[7].replace("T", " ").replace("Z", ""), "%Y-%m-%d %H:%M:%S")
+        if datetime.datetime.strptime(str(issue.first_commit_date), "%Y-%m-%d %H:%M:%S") > datetime.datetime.strptime(tmp[3].replace("T", " ").replace("Z", ""), "%Y-%m-%d %H:%M:%S"):
+            issue.first_commit_date = datetime.datetime.strptime(tmp[3].replace("T", " ").replace("Z", ""), "%Y-%m-%d %H:%M:%S")
             issue.first_commit_hash = set()
-            issue.first_commit_hash.add(tmp[8])
-        if datetime.datetime.strptime(str(issue.first_commit_date), "%Y-%m-%d %H:%M:%S") == datetime.datetime.strptime(tmp[7].replace("T", " ").replace("Z", ""), "%Y-%m-%d %H:%M:%S"):
-            issue.first_commit_hash.add(tmp[8])
+            issue.first_commit_hash.add(tmp[1])
+        if datetime.datetime.strptime(str(issue.first_commit_date), "%Y-%m-%d %H:%M:%S") == datetime.datetime.strptime(tmp[3].replace("T", " ").replace("Z", ""), "%Y-%m-%d %H:%M:%S"):
+            issue.first_commit_hash.add(tmp[1])
 
-    #reorder according to the first commit time
-    # issues.sort(key=lambda x: datetime.datetime.strptime(str(x.first_commit_date), "%Y-%m-%d %H:%M:%S")) #根据第一个提交的时间重新排序 todo
-    # print()
-
-    # 读取每个commit所对应的source code list
+    # source code list
     map_file = {} # commit_hash, source code files
     connection.text_factory = str
     cursor = connection.cursor()
@@ -124,14 +120,6 @@ def read_tracescore(path):
     for tmp in result:
         map_file[tmp[0]] = tmp[1]
 
-    # # 读取每个issue中包含的commit_hash,并设置source_files 为所有commit_hash的source code的并集
-    # cursor.execute("select issue_id, commit_hash as b from v_code_change group by issue_id, commit_hash")
-    # result = cursor.fetchall()
-    # for tmp in result:
-    #     files = map_file[tmp[1]].replace("[","").replace("]","").split(", ")
-    #     issue_map[tmp[0]].source_files.update(tuple(files))
-
-    # 此处设置source code为首次提交的commit的source code，注意首次提交的可能不止一个，可能有多个commit，有相同的commit_date
     for issue in issues:
         for hash in issue.first_commit_hash:
             files = map_file[hash].replace("[","").replace("]","").split(", ")

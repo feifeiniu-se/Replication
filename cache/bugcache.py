@@ -68,40 +68,40 @@ def calculate(bugs):
     evaluation(ground_truth, predict_result)
 
 # old dataset tracescore
-# path = "C:/Users/Feifei/dataset/tracescore"
-# path2 = "C:/Users/Feifei/dataset/issues"
-# files = ["derby", "drools", "hornetq", "izpack", "keycloak", "log4j2", "railo", "seam2", "teiid", "weld", "wildfly"]
+path = "C:/Users/Feifei/dataset/tracescore"
+path2 = "C:/Users/Feifei/dataset/issues"
+files = ["derby", "drools", "hornetq", "izpack", "keycloak", "log4j2", "railo", "seam2", "teiid", "weld", "wildfly"]
+print(";MAP;MRR;Top 1;Top 5;Top 10")
+for file in files[:]:
+    print(file, end=" ")
+    filePath = path+"\\"+file + ".sqlite3"
+    filePath2 = path2+"\\"+file+".sqlite3"
+    issues = read_tracescore(filePath)
+    issues = [x for x in issues if x.issue_type == "Bug"]
+    # print(len(issues))
+    commits = read_commits(filePath2)
+    bugids = [issue.issue_id for issue in issues]
+    commits = [commit for commit in commits if isBugFixing(commit.message, bugids)] # only select bug-fixing commits
+    file_history = loadFileCommitHistory(commits) # {filePath: file commit history}
+    versionHistoryCompute(issues, file_history, 15)
+    # insert_database(filePath, issues) #insert cache score into database
+    calculate(issues)
+
+# #new dataset issues
+# path = "C:/Users/Feifei/dataset/issues"
+# files = ["archiva", "axis2", "cassandra", "derby", "drools", "errai", "flink", "groovy", "hadoop", "hbase", "hibernate", "hive", "hornetq", "infinispan", "izpack", "jbehave", "jboss-transaction-manager", "jbpm", "kafka", "keycloak", "log4j2", "lucene", "maven", "pig", "railo", "resteasy", "seam2", "spark", "switchyard", "teiid", "weld", "wildfly", "zookeeper"]
 # print(";MAP;MRR;Top 1;Top 5;Top 10")
 # for file in files[:]:
 #     print(file, end=" ")
 #     filePath = path+"\\"+file + ".sqlite3"
-#     filePath2 = path2+"\\"+file+".sqlite3"
-#     issues = read_sqlite(filePath)
+#     issues = read_issues(filePath)
+#     issues = [issue for issue in issues if len(issue.files)>0]
 #     issues = [x for x in issues if x.issue_type == "Bug"]
 #     # print(len(issues))
-#     commits = read_commits(filePath2)
+#     commits = read_commits(filePath)
 #     bugids = [issue.issue_id for issue in issues]
 #     commits = [commit for commit in commits if isBugFixing(commit.message, bugids)] # only select bug-fixing commits
 #     file_history = loadFileCommitHistory(commits) # {filePath: file commit history}
 #     versionHistoryCompute(issues, file_history, 15)
 #     insert_database(filePath, issues) #insert cache score into database
 #     calculate(issues)
-
-#new dataset issues
-path = "C:/Users/Feifei/dataset/issues"
-files = ["archiva", "axis2", "cassandra", "derby", "drools", "errai", "flink", "groovy", "hadoop", "hbase", "hibernate", "hive", "hornetq", "infinispan", "izpack", "jbehave", "jboss-transaction-manager", "jbpm", "kafka", "keycloak", "log4j2", "lucene", "maven", "pig", "railo", "resteasy", "seam2", "spark", "switchyard", "teiid", "weld", "wildfly", "zookeeper"]
-print(";MAP;MRR;Top 1;Top 5;Top 10")
-for file in files[:]:
-    print(file, end=" ")
-    filePath = path+"\\"+file + ".sqlite3"
-    issues = read_issues(filePath)
-    issues = [issue for issue in issues if len(issue.files)>0]
-    issues = [x for x in issues if x.issue_type == "Bug"]
-    # print(len(issues))
-    commits = read_commits(filePath)
-    bugids = [issue.issue_id for issue in issues]
-    commits = [commit for commit in commits if isBugFixing(commit.message, bugids)] # only select bug-fixing commits
-    file_history = loadFileCommitHistory(commits) # {filePath: file commit history}
-    versionHistoryCompute(issues, file_history, 15)
-    insert_database(filePath, issues) #insert cache score into database
-    calculate(issues)
