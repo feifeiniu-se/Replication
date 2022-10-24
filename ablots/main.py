@@ -74,7 +74,23 @@ def make_pairs(issues):
                 value.append(1)
             else:
                 value.append(-1)
+            # if (value[2]+value[3]+value[4])>0.5:
             pairs.append(value)
+
+    # map_count = {}
+    # for i in pairs:
+    #     k = i[0]
+    #     if k in map_count:
+    #         map_count[k] = map_count[k] + 1
+    #     else:
+    #         map_count[k] = 1
+    # total = 0
+    # for k, v in map_count.items():
+    #     total = total + v
+    # average = total/len(map_count)
+    # print(total/len(map_count))
+
+
     return pairs
 
 
@@ -116,7 +132,7 @@ def calculate_fixed(issues):
             cache_score = issue.cache_score[f] if f in issue.cache_score else 0
             bluir_score = issue.bluir_score[f] if f in issue.bluir_score else 0
             simi_score = issue.simi_score[f] if f in issue.simi_score else 0
-            score = (0.2 * simi_score + 0.8 * bluir_score) * 0.7 + cache_score * 0.3
+            score = (0.2 * simi_score + 0.8 * bluir_score) * 0.9 + cache_score * 0.1
             amalgam_score[f] = score
         sorted_files = sorted(amalgam_score.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)
         issue.ablots = [x[0] for x in sorted_files if x[0] in issue.source_files]
@@ -148,7 +164,7 @@ files = os.listdir(path)
 files = ["archiva", "cassandra", "errai", "flink", "groovy", "hbase", "hibernate", "hive", "jboss-transaction-manager", "kafka", "lucene", "maven", "resteasy", "spark", "switchyard", "zookeeper"]
 # "jbehave", "jbpm"
 print(";MAP;MRR;Top 1;Top 5;Top 10")
-for file in files[3:]:
+for file in files[:]:
     print(file, end=" ")
     filePath = path+"\\"+file + ".sqlite3"
     issues = read_issues(filePath)

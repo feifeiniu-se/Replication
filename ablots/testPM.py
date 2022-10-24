@@ -64,6 +64,19 @@ def train(project):
     test_data = arff.load(open("C:/Users/Feifei/dataset/tracescore/arffs/"+project+"_test.arff", "r"))
     test_data = test_data['data']
 
+    map_count = {}
+    for i in test_data:
+        k = i[0]
+        if k in map_count:
+            map_count[k] = map_count[k] + 1
+        else:
+            map_count[k] = 1
+    total = 0
+    for k, v in map_count.items():
+        total = total + v
+    average = total/len(map_count)
+    print(total/len(map_count))
+
     prob = J48(train_data, test_data)
 
     ground_truth = {}
@@ -87,7 +100,7 @@ def train(project):
 
     ground_truth = [ground_truth[issue] for issue in predict]
     predict = [predict[issue] for issue in predict]
-    evaluation(ground_truth, predict)
+    # evaluation(ground_truth, predict)
 files = ["derby", "drools", "hornetq", "izpack", "keycloak", "log4j2", "railo", "seam2", "teiid", "weld", "wildfly"]
 for f in files[:]:
     print(f, end=";")

@@ -3,6 +3,7 @@ from random import randint
 import numpy
 import sklweka.jvm as jvm
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import confusion_matrix
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.utils import shuffle
 from sklweka.dataset import load_arff, to_nominal_labels
@@ -37,21 +38,37 @@ def J48(train, test):
     return prob
 
 def DT(train, test):
-    x_train = [tmp[2:flag] for tmp in train]
-    y_train = [tmp[-1] for tmp in train]
+    x_train1 = [tmp[2:flag] for tmp in train]
+    y_train1 = [tmp[-1] for tmp in train]
     x_test = [tmp[2:flag] for tmp in test]
     y_test = [tmp[-1] for tmp in test]
     # y_train = to_nominal_labels(y_train)
     # y_test = to_nominal_labels(y_test)
     rus = RandomUnderSampler(random_state=1)
-    x_train, y_train = rus.fit_resample(x_train, y_train)
+
+    # x_train_ = []
+    # y_train_ = []
+    # for i in range(len(x_train1)):
+    #     if y_train1[i] == 1:
+    #         x_train_.append(x_train1[i])
+    #         y_train_.append(y_train1[i])
+    #     elif y_train1[i] == -1:
+    #         if  x_train1[i][2] != 0 and x_train1[i][1] != 0:
+    #             x_train_.append(x_train1[i])
+    #             y_train_.append(y_train1[i])
+
+    x_train, y_train = rus.fit_resample(x_train1, y_train1)
+    # x_train, y_train = rus.fit_resample(x_train_, y_train_)
     x_train, y_train = shuffle(x_train, y_train)
+
 
     # clf = DecisionTreeClassifier()
     clf = DecisionTreeClassifier(criterion="gini", min_samples_split=100, max_depth = 16)
     clf.fit(x_train, y_train)
     y_pred = clf.predict(x_test)
     prob = clf.predict_proba(x_test)
+    feature_imp = clf.tree_.compute_feature_importances(normalize=False)
+    print(feature_imp)
     # prob2 = clf.predict_proba(x_train)
     if y_pred[0]==-1:
         assert prob[0][0]>=prob[0][1]
