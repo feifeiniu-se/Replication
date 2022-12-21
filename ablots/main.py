@@ -142,34 +142,34 @@ def calculate_fixed(issues):
 
 
 
-# # # old dataset
-# path = "C:/Users/Feifei/dataset/tracescore"
-# files = os.listdir(path)
-# # files = ["derby", "drools", "izpack", "log4j2", "railo", "seam2"]
-# files = ["derby", "drools", "hornetq", "izpack", "keycloak", "log4j2", "railo", "seam2", "teiid", "weld", "wildfly"]
-# print(";MAP;MRR;Top 1;Top 5;Top 10")
-# for file in files[:]:
-#     print(file, end=" ")
-#     filePath = path+"\\"+file + ".sqlite3"
-#     issues = read_tracescore(filePath)
-#     read_scores(filePath, issues)
-#     # evaluate3(issues, "tracescore")
-#     # calculate(issues)
-#     calculate_fixed(issues)
-
-#new dataset
-path = "C:/Users/Feifei/dataset/issues"
+# # old dataset
+path = "C:/Users/Feifei/dataset/tracescore"
 files = os.listdir(path)
 # files = ["derby", "drools", "izpack", "log4j2", "railo", "seam2"]
-files = ["archiva", "cassandra", "errai", "flink", "groovy", "hbase", "hibernate", "hive", "jboss-transaction-manager", "kafka", "lucene", "maven", "resteasy", "spark", "switchyard", "zookeeper"]
-# "jbehave", "jbpm"
+files = ["derby", "drools", "hornetq", "izpack", "keycloak", "log4j2", "railo", "seam2", "teiid", "weld", "wildfly"]
 print(";MAP;MRR;Top 1;Top 5;Top 10")
 for file in files[:]:
     print(file, end=" ")
     filePath = path+"\\"+file + ".sqlite3"
-    issues = read_issues(filePath)
+    issues = read_tracescore(filePath)
     read_scores(filePath, issues)
-    issues = [issue for issue in issues if len(issue.files) > 0]
-    # evaluate3(issues,"cache")
-    # calculate(issues)
-    calculate_fixed(issues)
+    # evaluate3(issues, "tracescore")
+    calculate(issues)
+    # calculate_fixed(issues)
+
+# #new dataset
+# path = "C:/Users/Feifei/dataset/issues"
+# files = os.listdir(path)
+# # files = ["derby", "drools", "izpack", "log4j2", "railo", "seam2"]
+# files = ["archiva", "cassandra", "errai", "flink", "groovy", "hbase", "hibernate", "hive", "jboss-transaction-manager", "kafka", "lucene", "maven", "resteasy", "spark", "switchyard", "zookeeper"]
+# # "jbehave", "jbpm"
+# print(";MAP;MRR;Top 1;Top 5;Top 10")
+# for file in files[:]:
+#     print(file, end=" ")
+#     filePath = path+"\\"+file + ".sqlite3"
+#     issues = read_issues(filePath)
+#     read_scores(filePath, issues)
+#     issues = [issue for issue in issues if len(issue.files) > 0]
+#     # evaluate3(issues,"cache")
+#     # calculate(issues)
+#     calculate_fixed(issues)

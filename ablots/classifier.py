@@ -63,13 +63,15 @@ def DT(train, test):
 
 
     # clf = DecisionTreeClassifier()
-    clf = DecisionTreeClassifier(criterion="gini", min_samples_split=100, max_depth = 16)
+    # clf = DecisionTreeClassifier(criterion="gini", min_samples_split=100, max_depth = 16)
+    clf =  MLPClassifier(hidden_layer_sizes=(5,2), max_iter=500, random_state=1, solver="adam", activation='logistic')
     clf.fit(x_train, y_train)
     y_pred = clf.predict(x_test)
     prob = clf.predict_proba(x_test)
-    feature_imp = clf.tree_.compute_feature_importances(normalize=False)
-    print(feature_imp)
+    # feature_imp = clf.tree_.compute_feature_importances(normalize=False)
+    # print(feature_imp)
     # prob2 = clf.predict_proba(x_train)
+    # print(clf.param)
     if y_pred[0]==-1:
         assert prob[0][0]>=prob[0][1]
     if y_pred[0]==1:
