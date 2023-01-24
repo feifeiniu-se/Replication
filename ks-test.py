@@ -34,6 +34,7 @@ df = pd.read_excel(r'C:\Users\Feifei\Desktop\saner\saner.xlsx', sheet_name='ks-t
 
 
 
+
 for k in range(1,6):
     data1 = [x for x in df[k][1:12]]
     data2 = [x for x in df[k][17:33]]
@@ -46,9 +47,21 @@ for k in range(1,6):
     sns.kdeplot(data2)
     plt.show()
 
-
 print()
 for k in range(9,14):
+    data1 = [x for x in df[k][1:12]]
+    data2 = [x for x in df[k][17:33]]
+    x = ks_2samp(data1, data2)
+    print(x)
+
+    fig = plt.figure(figsize=(10, 6))
+    sns.set_style("whitegrid")
+    sns.kdeplot(data1)
+    sns.kdeplot(data2)
+    plt.show()
+
+print()
+for k in range(16,21):
     data1 = [x for x in df[k][1:12]]
     data2 = [x for x in df[k][17:33]]
     x = ks_2samp(data1, data2)

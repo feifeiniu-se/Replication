@@ -21,7 +21,7 @@ def calculate(issues):
         within365 = bugReport[:index]
         within365 = [x for x in within365 if (issue.created_date>x.fixed_date)]
         # within365 = test_bugs[:i]
-        issue.artifacts = [x for x in within365] #不把修改文件过多的requirement和bug report过滤掉，会有些许的提升，因此此处不过滤
+        issue.artifacts = [x for x in within365]
         issue.artif_sim = [cosine_similarity(issue.tfidf, x.tfidf) for x in issue.artifacts]
         issue.artif_sim = [float(x[0][0]) for x in issue.artif_sim]
 

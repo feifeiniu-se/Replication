@@ -20,18 +20,31 @@ df = pd.read_excel(r'C:\Users\Feifei\Desktop\saner\saner.xlsx', sheet_name='ks-t
 # top52 = [x for x in df[4][17:33]]
 # top102 = [x for x in df[5][17:33]]
 
-# ABLoTS
-map0 = [x for x in df[9][1:12]]
-mrr0 = [x for x in df[10][1:12]]
-top10 = [x for x in df[11][1:12]]
-top50 = [x for x in df[12][1:12]]
-top100 = [x for x in df[13][1:12]]
+# # ABLoTS
+# map0 = [x for x in df[9][1:12]]
+# mrr0 = [x for x in df[10][1:12]]
+# top10 = [x for x in df[11][1:12]]
+# top50 = [x for x in df[12][1:12]]
+# top100 = [x for x in df[13][1:12]]
+#
+# map2 = [x for x in df[9][17:33]]
+# mrr2 = [x for x in df[10][17:33]]
+# top12 = [x for x in df[11][17:33]]
+# top52 = [x for x in df[12][17:33]]
+# top102 = [x for x in df[13][17:33]]
 
-map2 = [x for x in df[9][17:33]]
-mrr2 = [x for x in df[10][17:33]]
-top12 = [x for x in df[11][17:33]]
-top52 = [x for x in df[12][17:33]]
-top102 = [x for x in df[13][17:33]]
+# TraceScore improvement
+map0 = [x for x in df[16][1:12]]
+mrr0 = [x for x in df[17][1:12]]
+top10 = [x for x in df[18][1:12]]
+top50 = [x for x in df[19][1:12]]
+top100 = [x for x in df[20][1:12]]
+
+map2 = [x for x in df[16][17:33]]
+mrr2 = [x for x in df[17][17:33]]
+top12 = [x for x in df[18][17:33]]
+top52 = [x for x in df[19][17:33]]
+top102 = [x for x in df[20][17:33]]
 
 
 data = [map0, map2, mrr0, mrr2, top10, top12, top50, top52, top100, top102]
@@ -41,5 +54,5 @@ ax.set_xticklabels(["original", "extended", "original", "extended", "original", 
 # ax.set_xticklabels(["MAP", "MRR", "Top 1", "Top 5", "Top 10"])
 # plt.title("TraceScore")
 plt.ylabel("Score")
-plt.savefig(r"C:\Users\Feifei\Desktop\saner\ablots.jpg", dpi=1500)
+plt.savefig(r"C:\Users\Feifei\Desktop\saner\improvement.jpg", dpi=1500)
 plt.show()
