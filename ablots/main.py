@@ -132,7 +132,7 @@ def calculate_fixed(issues):
             cache_score = issue.cache_score[f] if f in issue.cache_score else 0
             bluir_score = issue.bluir_score[f] if f in issue.bluir_score else 0
             simi_score = issue.simi_score[f] if f in issue.simi_score else 0
-            score = (0.2 * simi_score + 0.8 * bluir_score) * 0.9 + cache_score * 0.1
+            score = (0.2 * simi_score + 0.8 * bluir_score) * 0.7 + cache_score * 0.3
             amalgam_score[f] = score
         sorted_files = sorted(amalgam_score.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)
         issue.ablots = [x[0] for x in sorted_files if x[0] in issue.source_files]
